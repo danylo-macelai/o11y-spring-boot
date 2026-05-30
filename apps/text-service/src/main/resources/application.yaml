@@ -1,0 +1,12 @@
+server:
+  servlet:
+    context-path: /
+  error:
+    whitelabel:
+      enabled: false
+  forward-headers-strategy: framework
+  port: 8080
+
+spring:
+  application:
+    name: text-service
