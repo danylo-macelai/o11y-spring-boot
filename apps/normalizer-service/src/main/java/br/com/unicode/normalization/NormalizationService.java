@@ -6,7 +6,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NormalizationService {
@@ -16,9 +18,23 @@ public class NormalizationService {
     @Transactional
     public NormalizationResponse normalize(final NormalizationRequest request) {
 
+        log.atInfo()
+                .addKeyValue("event", "normalization.started")
+                .addKeyValue("text_id", request.textId())
+                .addKeyValue("input_text", request.inputText())
+                .addKeyValue("normalization_form", request.normalizationForm().name())
+                .log(); 
+
         var outputText = normalizeText(request.inputText(), request.normalizationForm());
 
         var changed = !outputText.equals(request.inputText());
+
+        log.atInfo()
+                .addKeyValue("event", "normalization.completed")
+                .addKeyValue("text_id", request.textId())
+                .addKeyValue("output_text", outputText)
+                .addKeyValue("changed", changed)
+                .log();
 
         var entity = Normalization.builder()
                 .textId(request.textId())
@@ -27,6 +43,11 @@ public class NormalizationService {
                 .normalizationForm(request.normalizationForm())
                 .changed(changed)
                 .build();
+
+        log.atInfo()
+                .addKeyValue("event", "normalization.persisted")
+                .addKeyValue("text_id", entity.getTextId())
+                .log();
 
         repository.save(entity);
 

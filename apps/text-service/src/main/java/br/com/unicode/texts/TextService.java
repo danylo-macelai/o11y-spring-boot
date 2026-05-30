@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 
 import br.com.unicode.normalization.NormalizationClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TextService {
@@ -21,6 +23,12 @@ public class TextService {
 
         var textId = randomUUID();
 
+        log.atInfo()
+                .addKeyValue("event", "text.received")
+                .addKeyValue("text_id", textId)
+                .addKeyValue("normalization_form", request.normalizationForm())
+                .log();
+
         var entity = Text.builder()
                 .id(textId)
                 .inputText(request.inputText())
@@ -30,24 +38,60 @@ public class TextService {
 
         repository.save(entity);
 
+        log.atInfo()
+                .addKeyValue("event", "text.persisted.success")
+                .addKeyValue("text_id", textId)
+                .addKeyValue("normalization_status", entity.getNormalizationStatus().name())
+                .log();
+
         NormalizationStatus status;
         String outputText = null;
 
         try {
+
+            log.atInfo()
+                    .addKeyValue("event", "normalization.request.sent")
+                    .addKeyValue("text_id", textId)
+                    .log();
 
             var normalization = normalizationClient.normalize(entity);
 
             outputText = String.valueOf(normalization.get("output_text"));
             var changed = TRUE.equals(normalization.get("changed"));
 
+            log.atInfo()
+                    .addKeyValue("event", "normalization.result.received")
+                    .addKeyValue("text_id", textId)
+                    .addKeyValue("changed", changed)
+                    .log();
+
             status = NormalizationStatus.from(changed);
         } catch (Exception e) {
+
+            log.atInfo()
+                    .addKeyValue("event", "normalization.failed")
+                    .addKeyValue("text_id", textId)
+                    .addKeyValue("error", e.getMessage())
+                    .log();
 
             status = ERROR;
         }
 
         entity.setNormalizationStatus(status);
+
+        log.atInfo()
+                .addKeyValue("event", "text.status.changed")
+                .addKeyValue("text_id", textId)
+                .addKeyValue("normalization_status", entity.getNormalizationStatus().name())
+                .log();
+
         repository.save(entity);
+
+        log.atInfo()
+                .addKeyValue("event", "text.response.sent")
+                .addKeyValue("text_id", textId)
+                .addKeyValue("normalization_status", entity.getNormalizationStatus().name())
+                .log();
 
         return new TextResponse(
                 entity.getId().toString(),

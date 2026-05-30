@@ -12,7 +12,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import br.com.unicode.texts.Text;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 public class NormalizationClient {
 
@@ -30,15 +32,35 @@ public class NormalizationClient {
                 "input_text", text.getInputText(),
                 "normalization_form", text.getNormalizationForm());
 
+        log.atInfo()
+                .addKeyValue("event", "http.client.request.out")
+                .addKeyValue("text_id", text.getId())
+                .addKeyValue("url", url)
+                .log();
+
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 url,
                 POST,
                 new HttpEntity<>(body),
                 new ParameterizedTypeReference<>() {
                 });
+
+        log.atInfo()
+                .addKeyValue("event", "http.client.response.in")
+                .addKeyValue("text_id", text.getId())
+                .addKeyValue("url", url)
+                .addKeyValue("status_code", response.getStatusCode().value())
+                .log();
+
         var responseBody = response.getBody();
 
         if (responseBody == null) {
+
+            log.atInfo()
+                    .addKeyValue("event", "http.client.response.received.empty")
+                    .addKeyValue("text_id", text.getId())
+                    .log();
+
             return Map.of();
         }
 

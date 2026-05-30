@@ -25,3 +25,14 @@ spring:
 normalizer:
   service:
     url: http://localhost:8081
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger - %kvp%n"
+
+  level:
+    root: INFO
+    br.com.unicode: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE

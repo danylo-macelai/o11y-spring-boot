@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/normalization")
 @RequiredArgsConstructor
@@ -23,7 +25,17 @@ class NormalizationController {
     ResponseEntity<NormalizationResponse> normalize(
             final @RequestBody NormalizationRequest request) {
 
+        log.atInfo()
+                .addKeyValue("event", "normalization.request.received")
+                .addKeyValue("text_id", request.textId())
+                .log();
+
         var response = normalizationService.normalize(request);
+
+        log.atInfo()
+                .addKeyValue("event", "normalization.response.sent")
+                .addKeyValue("text_id", response.textId())
+                .log();
 
         return ResponseEntity.ok(response);
     }
