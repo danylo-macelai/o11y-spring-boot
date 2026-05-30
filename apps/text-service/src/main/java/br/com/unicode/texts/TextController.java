@@ -10,19 +10,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/texts")
+@RequiredArgsConstructor
 class TextController {
+
+    private final TextService textService;
 
     @PostMapping("/normalize")
     ResponseEntity<TextResponse> normalize(
             final @RequestBody TextRequest request) {
 
-        var response = new TextResponse(
-                "78839a5c-20dd-49bb-bb25-a4b1d686b82b",
-                request.inputText(),
-                request.inputText(),
-                NormalizationStatus.CHANGED);
+        var response = textService.normalize(request);
 
         return ResponseEntity.ok(response);
     }
