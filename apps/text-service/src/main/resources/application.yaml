@@ -21,3 +21,7 @@ spring:
     show-sql: false
     hibernate:
       ddl-auto: update
+
+normalizer:
+  service:
+    url: http://localhost:8081
