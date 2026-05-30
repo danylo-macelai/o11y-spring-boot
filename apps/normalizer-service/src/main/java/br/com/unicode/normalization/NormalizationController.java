@@ -10,26 +10,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/normalization")
+@RequiredArgsConstructor
 class NormalizationController {
+
+    private final NormalizationService normalizationService;
 
     @PostMapping("/form")
     ResponseEntity<NormalizationResponse> normalize(
-            @RequestBody NormalizationRequest request) {
+            final @RequestBody NormalizationRequest request) {
 
-        var response = new NormalizationResponse(
-                request.textId(),
-                request.inputText(),
-                request.normalizationForm(),
-                true,
-                new String[] {
-                        "U+0063",
-                        "U+0061",
-                        "U+0066",
-                        "U+0065",
-                        "U+0301"
-                });
+        var response = normalizationService.normalize(request);
 
         return ResponseEntity.ok(response);
     }
